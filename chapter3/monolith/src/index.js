@@ -4,7 +4,6 @@ const cors = require( 'cors' )
 const { v4: idGen } = require('uuid')
 
 const {
-  payrollDAO,
   invoiceDAO,
   userNotificationDAO,
 } = require( './db' )
@@ -12,47 +11,32 @@ const {
 app.use( express.json() )
 app.use(cors())
 
-app.post( '/payroll', ( req, res ) => {
-  console.log( `received payload ${req.body} ` )
-
-  const {
-    userId,
-    amount,
-    date 
-  } = req?.body || {}
-
-  const doc = payrollDAO.insert( {
-    id: idGen(),
-    userId,
-    amount,
-    date: new Date( date )
-  } )
-
-  userNotificationDAO.insert( {
-    id: idGen(),
-    user: userId,
-    event: 'payroll',
-    eventId: doc.id,
-    body: JSON.stringify( req.body )
-  } )
-
-  res
-    .status(201)
-    .json( doc )
-} )
-
-app.get( '/payroll', ( req, res) => {
-  const payrolls = payrollDAO.find()
-  res
-    .status(200)
-    .json( payrolls )
-} )
-
 app.get( '/userNotification', ( req, res) => {
   const userNotifications = userNotificationDAO.find()
   res
     .status(200)
     .json( userNotifications )
+} )
+
+app.post( '/userNotification', ( req, res) => {
+  const { 
+    event,
+    userId,
+    eventId,
+    body
+  } = req.body
+
+  const doc = userNotificationDAO.insert( {
+    id: idGen(),
+    user: userId,
+    event: event,
+    eventId: eventId,
+    body: JSON.stringify( body )
+  } )
+
+  res
+    .status(201)
+    .json( doc )
 } )
 
 app.post( '/invoice', ( req, res ) => {
